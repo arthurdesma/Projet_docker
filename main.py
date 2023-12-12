@@ -1,19 +1,41 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from elasticsearch import Elasticsearch
+from elasticsearch.exceptions import NotFoundError, RequestError
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
 # Assuming BDD.py contains the necessary database functions
 from BDD import connect_db, insert_data_if_not_exists
 from scrap import fetch_race_links, year_result, race_number
 
 app = FastAPI()
+es = Elasticsearch("http://localhost:9200")
 
 # Database configuration
 database_name = "racing_database"
 collection_name_1 = "grand_prix_results"
 collection_name_2 = "driver_standings"
 
+# Serve static files and templates
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates") 
+
+
+@app.on_event("startup")
+async def startup_event():
+    if not es.ping():
+        raise ValueError("Cannot connect to Elasticsearch.")
+    print("Connected to Elasticsearch!")
+
+
+@app.get("/", response_class=HTMLResponse)
+async def read_item(request: Request):
+    return templates.TemplateResponse("home.html", {"request": request})
+
 
 @app.post("/update_database/")
-def update_database(start_year: int, end_year: int):
+async def update_database(start_year: int, end_year: int):
     end_year += 1
     all_race_data = []
     for year in range(start_year, end_year):
@@ -50,6 +72,7 @@ def update_database(start_year: int, end_year: int):
                 "Years",
             ],
         )
+    return {"message": "Database updated successfully"}
 
 
 if __name__ == "__main__":
