@@ -1,4 +1,6 @@
 from pymongo import MongoClient
+from elasticsearch import helpers
+
 
 def connect_db(db_name, collection_name):
     client = MongoClient('localhost', 27017)

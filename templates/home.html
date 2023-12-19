@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html>
-
 <head>
     <title>Racing Database Update</title>
     <style>
-        /* Ajoutez ici votre CSS pour le style */
+        /* Add your CSS styling here */
     </style>
     <script>
         async function updateDatabase() {
@@ -12,43 +11,39 @@
                 const startYear = document.getElementById('startYear').value;
                 const endYear = document.getElementById('endYear').value;
 
-                const response = await fetch(`/update_database/?start_year=${startYear}&end_year=${endYear}`, {
+                const response = await fetch(`/update_and_index/?start_year=${startYear}&end_year=${endYear}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     }
-                    // Pas de body nécessaire ici car les paramètres sont dans l'URL
                 });
 
                 if (!response.ok) {
                     const errorData = await response.json();
-                    console.error("Erreur lors de la requête :", response.status, response.statusText, errorData);
-                    alert(`Erreur : ${response.status} ${response.statusText}\n${JSON.stringify(errorData)}`);
+                    console.error("Error during request:", response.status, response.statusText, errorData);
+                    alert(`Error: ${response.status} ${response.statusText}\n${JSON.stringify(errorData)}`);
                 } else {
                     const data = await response.json();
-                    console.log("Réponse de l'API :", data);
-                    alert(`Succès : ${JSON.stringify(data)}`);
+                    console.log("API Response:", data);
+                    alert(`Success: ${JSON.stringify(data)}`);
                 }
             } catch (error) {
-                console.error("Erreur lors de l'envoi de la requête :", error);
-                alert(`Erreur lors de l'envoi de la requête : ${error}`);
+                console.error("Error during request submission:", error);
+                alert(`Error during request submission: ${error}`);
             }
         }
-
     </script>
 </head>
-
 <body>
-    <h1>Mise à jour de la base de données des courses</h1>
+    <h1>Update Racing Database</h1>
     <div>
-        <label for="startYear">Année de départ :</label>
+        <label for="startYear">Start Year:</label>
         <input type="number" id="startYear" name="startYear">
     </div>
     <div>
-        <label for="endYear">Année de fin :</label>
+        <label for="endYear">End Year:</label>
         <input type="number" id="endYear" name="endYear">
     </div>
-    <button onclick="updateDatabase()">Mettre à jour la base de données</button>
+    <button onclick="updateDatabase()">Update Database</button>
 </body>
-
 </html>
