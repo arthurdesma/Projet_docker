@@ -45,7 +45,9 @@ async def update_database(start_year: int, end_year: int):
     end_year += 1
     all_race_data = []
     for year in range(start_year, end_year):
+        print(year)
         race_links = fetch_race_links(year)
+        print(race_links)
         if isinstance(race_links, list):
             all_race_data.extend(race_links)
         else:

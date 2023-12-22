@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 def fetch_race_links(year):
     url = f"https://www.formula1.com/en/results.html/{year}/races.html"
     response = requests.get(url)
+    print(response)
 
     if response.status_code != 200:
         return f"Failed to fetch data for year {year}: {response.status_code}"
