@@ -5,9 +5,11 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pymongo import MongoClient
 from fastapi import BackgroundTasks
+from fastapi import FastAPI, Query
+from elasticsearch import Elasticsearch
+from bson import ObjectId
 
 
-# Assuming BDD.py contains the necessary database functions
 from BDD import connect_db, insert_data_if_not_exists
 from scrap import fetch_race_links, year_result, race_number
 
@@ -24,7 +26,7 @@ db = mongo_client[database_name]
 
 
 # Serve static files and templates
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory="templates"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 
@@ -81,6 +83,16 @@ async def update_database(start_year: int, end_year: int):
             ],
         )
 
+@app.post("/update_and_index/")
+async def update_and_index_database(background_tasks: BackgroundTasks, start_year: int, end_year: int):
+    # Update the database
+    await update_database(start_year, end_year)
+
+    # Add indexing to background tasks
+    background_tasks.add_task(index_data)
+
+    return {"message": "Database update initiated and indexing scheduled"}
+
 
 def index_data_to_es(collection_name, index_name):
     collection = db[collection_name]
@@ -88,11 +100,16 @@ def index_data_to_es(collection_name, index_name):
     actions = [
         {
             "_index": index_name,
-            "_source": doc,
+            "_source": {
+                'mongo_id': str(doc['_id']),  # Rename '_id' to 'mongo_id'
+                **{k: v for k, v in doc.items() if k != '_id'}  # Exclude the original '_id'
+            },
         }
         for doc in docs
     ]
-    helpers.bulk(es, actions)
+    success, failed = helpers.bulk(es, actions, stats_only=True)
+    print(f"Successfully indexed {success} documents, {failed} failures")
+
 
 
 @app.post("/index_data/")
@@ -105,31 +122,39 @@ async def index_data():
         return {"error": str(e)}
 
 
-@app.post("/update_and_index/")
-async def update_and_index_database(background_tasks: BackgroundTasks, start_year: int, end_year: int):
-    # Update the database
-    await update_database(start_year, end_year)
+@app.get("/search/")
+async def search_data(index: str, query: str = Query(None), size: int = 10):
+    """
+    Search data in the specified Elasticsearch index.
 
-    # Add indexing to background tasks
-    background_tasks.add_task(index_data)
+    Args:
+    - index (str): The name of the Elasticsearch index to search.
+    - query (str, optional): The search query. Defaults to None, which fetches all documents.
+    - size (int, optional): Number of results to return. Defaults to 10.
 
-    return {"message": "Database update initiated and indexing scheduled"}
+    Returns:
+    - dict: The search results from Elasticsearch.
+    """
+    if not query:
+        # Match all documents if no query is provided
+        search_query = {"query": {"match_all": {}}}
+    else:
+        # Use a simple text query for the provided search term
+        search_query = {"query": {"simple_query_string": {"query": query}}}
 
-@app.get("/view_data/")
-async def view_data(index: str):
     try:
-        response = es.search(index=index, body={"query": {"match_all": {}}})
-        return response
+        response = es.search(index=index, body=search_query, size=size)
+        return {"status": "success", "data": response['hits']['hits']}
     except Exception as e:
-        return {"error": str(e)}
+        return {"status": "error", "message": str(e)}
 
 @app.get("/list_indices/")
 async def list_indices():
     try:
-        indices = es.cat.indices(format="json")
-        return {"indices": indices}
+        response = es.cat.indices(format="json")
+        return {"status": "success", "indices": response}
     except Exception as e:
-        return {"error": str(e)}
+        return {"status": "error", "message": str(e)}
 
 
 if __name__ == "__main__":

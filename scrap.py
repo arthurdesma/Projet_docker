@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 # Function to fetch race links
 def fetch_race_links(year):
     try:
-        print(f"Attempting to connect to URL for year {year}")  # Debug message
+        print(f"Attempting to connect to URL for year {year}")
         url = f"https://www.formula1.com/en/results.html/{year}/races.html"
         response = requests.get(url, timeout=10)
 
@@ -13,11 +13,7 @@ def fetch_race_links(year):
         if response.status_code != 200:
             return f"Failed to fetch data for year {year}: HTTP Status Code {response.status_code}"
 
-        print(f"Successfully connected to the website for year {year}.")  # Connection successful message
-
         soup = BeautifulSoup(response.text, "html.parser")
-
-        print("Parsing HTML...")  # Debug message
 
         items = soup.find_all(
             lambda tag: tag.name == "a"
@@ -25,16 +21,12 @@ def fetch_race_links(year):
             and tag.get("data-name") == "meetingKey"
         )
 
-        print("HTML parsing complete. Processing data...")  # Debug message
-
         race_data = []
         for element in items:
             data_value = element.get("data-value")
             if data_value:
                 href = "https://www.formula1.com" + element.get("href")
                 race_data.append({"year": year, "data_value": data_value, "href": href})
-
-        print("Data processing complete.")  # Debug message
 
         return race_data
 

@@ -6,7 +6,26 @@
         /* Add your CSS styling here */
     </style>
     <script>
+        function validateYears() {
+            const startYear = parseInt(document.getElementById('startYear').value, 10);
+            const endYear = parseInt(document.getElementById('endYear').value, 10);
+
+            if (startYear < 1950 || startYear > 2024 || endYear < 1950 || endYear > 2024) {
+                alert('Please enter years between 1950 and 2024.');
+                return false;
+            }
+
+            if (startYear > endYear) {
+                alert('Start year must be less than or equal to end year.');
+                return false;
+            }
+
+            return true;
+        }
+
         async function updateDatabase() {
+            if (!validateYears()) return;
+
             try {
                 const startYear = document.getElementById('startYear').value;
                 const endYear = document.getElementById('endYear').value;
@@ -38,11 +57,11 @@
     <h1>Update Racing Database</h1>
     <div>
         <label for="startYear">Start Year:</label>
-        <input type="number" id="startYear" name="startYear">
+        <input type="number" id="startYear" name="startYear" min="1950" max="2024">
     </div>
     <div>
         <label for="endYear">End Year:</label>
-        <input type="number" id="endYear" name="endYear">
+        <input type="number" id="endYear" name="endYear" min="1950" max="2024">
     </div>
     <button onclick="updateDatabase()">Update Database</button>
 </body>
