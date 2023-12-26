@@ -1,13 +1,9 @@
-from fastapi import FastAPI, Request
-from elasticsearch import Elasticsearch, helpers
+from fastapi import FastAPI, Request, BackgroundTasks, Query
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from elasticsearch import Elasticsearch, helpers
 from pymongo import MongoClient
-from fastapi import BackgroundTasks
-from fastapi import FastAPI, Query
-from elasticsearch import Elasticsearch
-from bson import ObjectId
 
 
 from BDD import connect_db, insert_data_if_not_exists
