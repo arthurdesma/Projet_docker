@@ -1,8 +1,6 @@
 fastapi
 uvicorn
-requests
-bs4
 pymongo
 jinja2
 elasticsearch==6.8.2
-aiohttp
+bson
