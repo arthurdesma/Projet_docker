@@ -7,9 +7,9 @@ def index_data_to_es(es, db, collection_name, index_name):
 
     fields_to_include = []
     if collection_name == "grand_prix_results":
-        fields_to_include = ["Grand Prix", "Winner", "Years", "Car"]
+        fields_to_include = ["Grand Prix", "Winner", "Year", "Car"]
     elif collection_name == "driver_standings":
-        fields_to_include = ["Driver name", "Grand Prix", "Years"]
+        fields_to_include = ["Driver name", "Grand Prix", "Year"]
 
     actions = []
     for doc in docs:
@@ -19,7 +19,7 @@ def index_data_to_es(es, db, collection_name, index_name):
             print(f"Indexing document with mongo_id: {mongo_id_str}")
             action = {
                 "_index": index_name,
-                "_id": mongo_id_str,  # Use mongo_id_str as the document ID in Elasticsearch
+                "_id": mongo_id_str,
                 "_source": {
                     "mongo_id": mongo_id_str,
                     **{k: v for k, v in doc.items() if k in fields_to_include},
@@ -40,3 +40,41 @@ def document_exists(es, index_name, document_id):
     except Exception as e:
         print(f"Error checking document existence: {e}")
         return False
+
+
+def build_es_query_for_driver_standings(grand_prix, year):
+    query_filters = []
+
+    if grand_prix:
+        query_filters.append({"match": {"Grand Prix": grand_prix}})
+    if year:
+        query_filters.append({"match": {"Year": year}})
+
+    if query_filters:
+        search_query = {
+            "query": {"bool": {"must": query_filters}},
+            "size": 100  
+        }
+    else:
+        search_query = {
+            "query": {"match_all": {}},
+            "size": 100
+        }
+
+    return search_query
+
+
+def build_es_query_for_grand_prix_results(year):
+    if year:
+        search_query = {
+            "query": {"match": {"Year": year}},
+            "size": 100  
+        }
+    else:
+        search_query = {
+            "query": {"match_all": {}},
+            "size": 100  
+        }
+
+    return search_query
+

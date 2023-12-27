@@ -9,7 +9,11 @@ from bson import ObjectId, json_util
 
 from BDD import connect_db, insert_data_if_not_exists
 from scrap import fetch_race_links, year_result, race_number
-from elastic_search import index_data_to_es
+from elastic_search import (
+    index_data_to_es,
+    build_es_query_for_driver_standings,
+    build_es_query_for_grand_prix_results,
+)
 
 app = FastAPI()
 es = Elasticsearch("http://localhost:9200")
@@ -24,7 +28,8 @@ db = mongo_client[database_name]
 
 
 # Serve static files and templates
-app.mount("/static", StaticFiles(directory="templates"), name="static")
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 templates = Jinja2Templates(directory="templates")
 
 
@@ -36,8 +41,20 @@ async def startup_event():
 
 
 @app.get("/", response_class=HTMLResponse)
-async def read_item(request: Request):
-    return templates.TemplateResponse("home.html", {"request": request})
+async def read_root(request: Request):
+    collection_1 = db["grand_prix_results"]
+    collection_2 = db["driver_standings"]
+
+    data_1 = list(collection_1.find({}))
+    data_2 = list(collection_2.find({}))
+
+    # Debug print statements
+    print("Data 1 sample:", data_1[0] if data_1 else "No data")
+    print("Data 2 sample:", data_2[0] if data_2 else "No data")
+
+    return templates.TemplateResponse(
+        "home.html", {"request": request, "data_1": data_1, "data_2": data_2}
+    )
 
 
 @app.post("/update_database/")
@@ -105,22 +122,13 @@ async def index_data():
         return {"error": str(e)}
 
 
-@app.get("/search/")
-async def search_data(index: str, query: str = Query(None), size: int = 10):
-    # Elasticsearch query
-    if not query:
-        search_query = {"query": {"match_all": {}}}
-    else:
-        search_query = {"query": {"simple_query_string": {"query": query}}}
-
-    # Fetch search results from Elasticsearch
+async def perform_search(index, query):
     try:
-        response = es.search(index=index, body=search_query, size=size)
+        response = es.search(index=index, body=query)
         es_hits = response["hits"]["hits"]
     except Exception as e:
         return {"status": "error", "message": f"Elasticsearch query failed: {str(e)}"}
 
-    # Retrieve full documents from MongoDB
     mongo_docs = []
     for hit in es_hits:
         mongo_id = hit["_source"].get("mongo_id")
@@ -128,7 +136,6 @@ async def search_data(index: str, query: str = Query(None), size: int = 10):
             try:
                 mongo_doc = db[index].find_one({"_id": ObjectId(mongo_id)})
                 if mongo_doc:
-                    # Convert MongoDB document to a Python dict and handle ObjectId
                     mongo_doc_dict = json_util._json_convert(mongo_doc)
                     mongo_doc_dict["_id"] = str(mongo_doc_dict["_id"])
                     mongo_docs.append(mongo_doc_dict)
@@ -153,6 +160,20 @@ async def list_indices():
         return {"status": "success", "indices": response}
     except Exception as e:
         return {"status": "error", "message": str(e)}
+
+
+@app.get("/search/driver_standings/")
+async def search_driver_standings(
+    grand_prix: str = None, year: int = None
+):
+    es_query = build_es_query_for_driver_standings(grand_prix, year)
+    return await perform_search("driver_standings", es_query)
+
+
+@app.get("/search/grand_prix_results/")
+async def search_grand_prix_results(year: int = None):
+    es_query = build_es_query_for_grand_prix_results(year)
+    return await perform_search("grand_prix_results", es_query)
 
 
 if __name__ == "__main__":

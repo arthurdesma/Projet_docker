@@ -1,58 +1,46 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-    <title>Racing Database Update</title>
+    <title>Racing Database</title>
     <style>
-        /* Add your CSS styling here */
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th,
+        td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+
+        input[type="number"] {
+            width: 100px;
+        }
+
+        button {
+            margin-top: 10px;
+        }
+
+        h2,
+        h3,
+        h4 {
+            margin-top: 20px;
+        }
     </style>
-    <script>
-        function validateYears() {
-            const startYear = parseInt(document.getElementById('startYear').value, 10);
-            const endYear = parseInt(document.getElementById('endYear').value, 10);
-
-            if (startYear < 1950 || startYear > 2024 || endYear < 1950 || endYear > 2024) {
-                alert('Please enter years between 1950 and 2024.');
-                return false;
-            }
-
-            if (startYear > endYear) {
-                alert('Start year must be less than or equal to end year.');
-                return false;
-            }
-
-            return true;
-        }
-
-        async function updateDatabase() {
-            if (!validateYears()) return;
-
-            try {
-                const startYear = document.getElementById('startYear').value;
-                const endYear = document.getElementById('endYear').value;
-
-                const response = await fetch(`/update_and_index/?start_year=${startYear}&end_year=${endYear}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    console.error("Error during request:", response.status, response.statusText, errorData);
-                    alert(`Error: ${response.status} ${response.statusText}\n${JSON.stringify(errorData)}`);
-                } else {
-                    const data = await response.json();
-                    console.log("API Response:", data);
-                    alert(`Success: ${JSON.stringify(data)}`);
-                }
-            } catch (error) {
-                console.error("Error during request submission:", error);
-                alert(`Error during request submission: ${error}`);
-            }
-        }
-    </script>
 </head>
+
 <body>
     <h1>Update Racing Database</h1>
     <div>
@@ -64,5 +52,88 @@
         <input type="number" id="endYear" name="endYear" min="1950" max="2024">
     </div>
     <button onclick="updateDatabase()">Update Database</button>
+
+    <!-- Filter Form for Grand Prix Results -->
+    <form id="grandPrixResultsForm">
+        <h3>Filter Grand Prix Results</h3>
+        <label for="yearGrandPrix">Year:</label>
+        <input type="number" id="yearGrandPrix" name="yearGrandPrix">
+        <button type="submit">Search</button>
+    </form>
+    <div id="grandPrixResultsResults"></div>
+
+    <h2>Racing Database</h2>
+    <!-- Grand Prix Results Table (Data 1) -->
+    <h3>Grand Prix Results</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Grand Prix</th>
+                <th>Winner</th>
+                <th>Car</th>
+                <th>Laps</th>
+                <th>Time</th>
+                <th>Year</th>
+            </tr>
+        </thead>
+        <tbody id="grandPrixResultsTableBody">
+            {% for item in data_1 %}
+            <tr>
+                <td>{{ item['Grand Prix'] }}</td>
+                <td>{{ item.Winner }}</td>
+                <td>{{ item.Car }}</td>
+                <td>{{ item.Laps }}</td>
+                <td>{{ item.Time }}</td>
+                <td>{{ item.Year }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Filter Form for Driver Standings -->
+    <form id="driverStandingsForm">
+        <h3>Filter Driver Standings</h3>
+        <label for="grandPrix">Grand Prix:</label>
+        <input type="text" id="grandPrix" name="grandPrix">
+        <label for="yearDriver">Year:</label>
+        <input type="number" id="yearDriver" name="yearDriver">
+        <button type="submit">Search</button>
+    </form>
+    <div id="driverStandingsResults"></div>
+
+    <!-- Driver Standings Table (Data 2) -->
+    <h4>Driver Standings</h4>
+    <table>
+        <thead>
+            <tr>
+                <th>Position</th>
+                <th>Number</th>
+                <th>Driver Name</th>
+                <th>Laps</th>
+                <th>Time</th>
+                <th>Points</th>
+                <th>Grand Prix</th>
+                <th>Year</th>
+            </tr>
+        </thead>
+        <tbody id="driverStandingsTableBody">
+            {% for item in data_2 %}
+            <tr>
+                <td>{{ item['Position'] }}</td>
+                <td>{{ item['Numero pilot'] }}</td>
+                <td>{{ item['Driver name'] }}</td>
+                <td>{{ item.Laps }}</td>
+                <td>{{ item.Time }}</td>
+                <td>{{ item.Points }}</td>
+                <td>{{ item['Grand Prix'] }}</td>
+                <td>{{ item.Year }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Link to external JavaScript file -->
+    <script src="/static/scripts.js"></script>
 </body>
+
 </html>
