@@ -1,14 +1,17 @@
 from pymongo import MongoClient
 from elasticsearch import helpers
 
+
 def connect_db(db_name, collection_name):
-    client = MongoClient('localhost', 27017)
+    client = MongoClient("localhost", 27017)
     db = client[db_name]
     collection = db[collection_name]
     return collection
 
+
 def data_exists(collection, query):
     return collection.find_one(query) is not None
+
 
 def insert_data_if_not_exists(collection, data, query_fields):
     for record in data:
