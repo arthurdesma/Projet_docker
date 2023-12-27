@@ -6,7 +6,6 @@ from elasticsearch import Elasticsearch, helpers
 from pymongo import MongoClient
 from bson import ObjectId, json_util
 
-
 from BDD import connect_db, insert_data_if_not_exists
 from scrap import fetch_race_links, year_result, race_number
 from elastic_search import (
@@ -15,7 +14,10 @@ from elastic_search import (
     build_es_query_for_grand_prix_results,
 )
 
+# Initialize the FastAPI application
 app = FastAPI()
+
+# Initialize Elasticsearch client
 es = Elasticsearch("http://localhost:9200")
 
 # Database configuration
@@ -23,18 +25,21 @@ database_name = "racing_database"
 collection_name_1 = "grand_prix_results"
 collection_name_2 = "driver_standings"
 
+# Initialize MongoDB client
 mongo_client = MongoClient("mongodb://localhost:27017")
 db = mongo_client[database_name]
 
-
 # Serve static files and templates
 app.mount("/static", StaticFiles(directory="static"), name="static")
-
 templates = Jinja2Templates(directory="templates")
 
 
 @app.on_event("startup")
 async def startup_event():
+    """
+    Function to be executed at the application startup.
+    Checks if Elasticsearch is running and connected.
+    """
     if not es.ping():
         raise ValueError("Cannot connect to Elasticsearch.")
     print("Connected to Elasticsearch!")
@@ -42,15 +47,15 @@ async def startup_event():
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
+    """
+    Endpoint to display the home page.
+    Retrieves data from MongoDB and passes it to the template.
+    """
     collection_1 = db["grand_prix_results"]
     collection_2 = db["driver_standings"]
 
     data_1 = list(collection_1.find({}))
     data_2 = list(collection_2.find({}))
-
-    # Debug print statements
-    print("Data 1 sample:", data_1[0] if data_1 else "No data")
-    print("Data 2 sample:", data_2[0] if data_2 else "No data")
 
     return templates.TemplateResponse(
         "home.html", {"request": request, "data_1": data_1, "data_2": data_2}
@@ -59,6 +64,10 @@ async def read_root(request: Request):
 
 @app.post("/update_database/")
 async def update_database(start_year: int, end_year: int):
+    """
+    Endpoint to update the racing database.
+    Fetches and stores data for specified years in MongoDB.
+    """
     end_year += 1
     all_race_data = []
     for year in range(start_year, end_year):
@@ -71,7 +80,6 @@ async def update_database(start_year: int, end_year: int):
     collection_1 = connect_db(database_name, collection_name_1)
     collection_2 = connect_db(database_name, collection_name_2)
 
-    # Prepare and index data for collection 1
     for year in range(start_year, end_year):
         year_result_data = year_result(year)
         insert_data_if_not_exists(
@@ -80,7 +88,6 @@ async def update_database(start_year: int, end_year: int):
             ["Grand Prix", "Winner", "Car", "Laps", "Time", "Years"],
         )
 
-    # Prepare and index data for collection 2
     for race in all_race_data:
         result_data = race_number(race["year"], race["data_value"])
         insert_data_if_not_exists(
@@ -103,10 +110,11 @@ async def update_database(start_year: int, end_year: int):
 async def update_and_index_database(
     background_tasks: BackgroundTasks, start_year: int, end_year: int
 ):
-    # Update the database
+    """
+    Endpoint to update the database and schedule data indexing.
+    Initiates database update and adds indexing to background tasks.
+    """
     await update_database(start_year, end_year)
-
-    # Add indexing to background tasks
     background_tasks.add_task(index_data)
 
     return {"message": "Database update initiated and indexing scheduled"}
@@ -114,6 +122,10 @@ async def update_and_index_database(
 
 @app.post("/index_data/")
 async def index_data():
+    """
+    Endpoint to index data from MongoDB to Elasticsearch.
+    Enhances the search capabilities by indexing the data.
+    """
     try:
         index_data_to_es(es, db, collection_name_1, "grand_prix_results")
         index_data_to_es(es, db, collection_name_2, "driver_standings")
@@ -123,6 +135,10 @@ async def index_data():
 
 
 async def perform_search(index, query):
+    """
+    Helper function to perform a search query in Elasticsearch.
+    Retrieves corresponding MongoDB documents based on Elasticsearch hits.
+    """
     try:
         response = es.search(index=index, body=query)
         es_hits = response["hits"]["hits"]
@@ -155,6 +171,10 @@ async def perform_search(index, query):
 
 @app.get("/list_indices/")
 async def list_indices():
+    """
+    Endpoint to list all indices in Elasticsearch.
+    Useful for administrative and debugging purposes.
+    """
     try:
         response = es.cat.indices(format="json")
         return {"status": "success", "indices": response}
@@ -163,15 +183,21 @@ async def list_indices():
 
 
 @app.get("/search/driver_standings/")
-async def search_driver_standings(
-    grand_prix: str = None, year: int = None
-):
+async def search_driver_standings(grand_prix: str = None, year: int = None):
+    """
+    Endpoint to search for driver standings.
+    Accepts parameters for grand prix and year to refine the search.
+    """
     es_query = build_es_query_for_driver_standings(grand_prix, year)
     return await perform_search("driver_standings", es_query)
 
 
 @app.get("/search/grand_prix_results/")
 async def search_grand_prix_results(year: int = None):
+    """
+    Endpoint to search for Grand Prix results.
+    Accepts a parameter for the year to refine the search.
+    """
     es_query = build_es_query_for_grand_prix_results(year)
     return await perform_search("grand_prix_results", es_query)
 
