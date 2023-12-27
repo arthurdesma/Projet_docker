@@ -4,6 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from elasticsearch import Elasticsearch, helpers
 from pymongo import MongoClient
+from bson import ObjectId,json_util
 
 
 from BDD import connect_db, insert_data_if_not_exists
@@ -93,26 +94,39 @@ async def update_and_index_database(background_tasks: BackgroundTasks, start_yea
 def index_data_to_es(collection_name, index_name):
     collection = db[collection_name]
     docs = collection.find({})
-    actions = [
-        {
+
+    if collection_name == collection_name_1:  # grand_prix_results
+        fields_to_include = ['Grand Prix', 'Winner', 'Years', 'Car']
+    elif collection_name == collection_name_2:  # driver_standings
+        fields_to_include = ['Driver name', 'Grand Prix', 'Years']
+    else:
+        fields_to_include = []
+
+    actions = []
+    for doc in docs:
+        mongo_id_str = str(doc['_id'])  # Convert ObjectId to string
+        print(f"Indexing document with mongo_id: {mongo_id_str}")  # Print the mongo_id
+
+        action = {
             "_index": index_name,
             "_source": {
-                'mongo_id': str(doc['_id']),  # Rename '_id' to 'mongo_id'
-                **{k: v for k, v in doc.items() if k != '_id'}  # Exclude the original '_id'
+                'mongo_id': mongo_id_str,  # Use the string version of '_id'
+                **{k: v for k, v in doc.items() if k in fields_to_include}
             },
         }
-        for doc in docs
-    ]
+        actions.append(action)
+
     success, failed = helpers.bulk(es, actions, stats_only=True)
     print(f"Successfully indexed {success} documents, {failed} failures")
+
 
 
 
 @app.post("/index_data/")
 async def index_data():
     try:
-        index_data_to_es(collection_name_1, "grand_prix_results_index")
-        index_data_to_es(collection_name_2, "driver_standings_index")
+        index_data_to_es(collection_name_1, "grand_prix_results")
+        index_data_to_es(collection_name_2, "driver_standings")
         return {"message": "Data indexed successfully"}
     except Exception as e:
         return {"error": str(e)}
@@ -120,29 +134,41 @@ async def index_data():
 
 @app.get("/search/")
 async def search_data(index: str, query: str = Query(None), size: int = 10):
-    """
-    Search data in the specified Elasticsearch index.
-
-    Args:
-    - index (str): The name of the Elasticsearch index to search.
-    - query (str, optional): The search query. Defaults to None, which fetches all documents.
-    - size (int, optional): Number of results to return. Defaults to 10.
-
-    Returns:
-    - dict: The search results from Elasticsearch.
-    """
+    # Elasticsearch query
     if not query:
-        # Match all documents if no query is provided
         search_query = {"query": {"match_all": {}}}
     else:
-        # Use a simple text query for the provided search term
         search_query = {"query": {"simple_query_string": {"query": query}}}
 
+    # Fetch search results from Elasticsearch
     try:
         response = es.search(index=index, body=search_query, size=size)
-        return {"status": "success", "data": response['hits']['hits']}
+        es_hits = response['hits']['hits']
     except Exception as e:
-        return {"status": "error", "message": str(e)}
+        return {"status": "error", "message": f"Elasticsearch query failed: {str(e)}"}
+
+    # Retrieve full documents from MongoDB
+    mongo_docs = []
+    for hit in es_hits:
+        mongo_id = hit['_source'].get('mongo_id')
+        if mongo_id:
+            try:
+                mongo_doc = db[index].find_one({'_id': ObjectId(mongo_id)})
+                if mongo_doc:
+                    # Convert MongoDB document to a Python dict and handle ObjectId
+                    mongo_doc_dict = json_util._json_convert(mongo_doc)
+                    mongo_doc_dict['_id'] = str(mongo_doc_dict['_id'])
+                    mongo_docs.append(mongo_doc_dict)
+                else:
+                    mongo_docs.append({'error': 'MongoDB document not found', 'mongo_id': mongo_id})
+            except Exception as e:
+                mongo_docs.append({'error': str(e), 'mongo_id': mongo_id})
+        else:
+            mongo_docs.append({'error': 'Missing mongo_id in Elasticsearch hit', 'hit': hit})
+
+    return {"status": "success", "data": mongo_docs}
+
+
 
 @app.get("/list_indices/")
 async def list_indices():
