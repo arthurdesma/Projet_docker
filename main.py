@@ -8,11 +8,7 @@ from bson import ObjectId, json_util
 
 from BDD import connect_db, insert_data_if_not_exists
 from scrap import fetch_race_links, year_result, race_number
-from elastic_search import (
-    index_data_to_es,
-    build_es_query_for_driver_standings,
-    build_es_query_for_grand_prix_results,
-)
+from elastic_search import index_data_to_es, build_es_query_for_driver_standings, build_es_query_for_grand_prix_results,
 
 # Initialize the FastAPI application
 app = FastAPI()
