@@ -6,9 +6,9 @@ from elasticsearch import Elasticsearch, helpers
 from pymongo import MongoClient
 from bson import ObjectId, json_util
 
-from BDD import connect_db, insert_data_if_not_exists
-from scrap import fetch_race_links, year_result, race_number
-from elastic_search import index_data_to_es, build_es_query_for_driver_standings, build_es_query_for_grand_prix_results,
+from mongoDB_folder.MongoDB import connect_db, insert_data_if_not_exists
+from scraping_folder.scrap import fetch_race_links, year_result, race_number
+from elastic_search_folder.elastic_search import index_data_to_es, build_es_query_for_driver_standings, build_es_query_for_grand_prix_results
 
 # Initialize the FastAPI application
 app = FastAPI()
