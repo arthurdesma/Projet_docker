@@ -45,11 +45,11 @@
     <h1>Update Racing Database</h1>
     <div>
         <label for="startYear">Start Year:</label>
-        <input type="number" id="startYear" name="startYear" min="1950" max="2024">
+        <input type="number" id="startYear" name="startYear" min="1950" max="2023">
     </div>
     <div>
         <label for="endYear">End Year:</label>
-        <input type="number" id="endYear" name="endYear" min="1950" max="2024">
+        <input type="number" id="endYear" name="endYear" min="1950" max="2023">
     </div>
     <button onclick="updateDatabase()">Update Database</button>
 
@@ -57,7 +57,7 @@
     <form id="grandPrixResultsForm">
         <h3>Filter Grand Prix Results</h3>
         <label for="yearGrandPrix">Year:</label>
-        <input type="number" id="yearGrandPrix" name="yearGrandPrix">
+        <input type="number" id="yearGrandPrix" name="yearGrandPrix" min="1950" max="2023">
         <button type="submit">Search</button>
     </form>
     <div id="grandPrixResultsResults"></div>
@@ -96,7 +96,7 @@
         <label for="grandPrix">Grand Prix:</label>
         <input type="text" id="grandPrix" name="grandPrix">
         <label for="yearDriver">Year:</label>
-        <input type="number" id="yearDriver" name="yearDriver">
+        <input type="number" id="yearDriver" name="yearDriver" min="1950" max="2023">
         <button type="submit">Search</button>
     </form>
     <div id="driverStandingsResults"></div>

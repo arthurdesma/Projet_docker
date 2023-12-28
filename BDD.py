@@ -12,13 +12,14 @@ def connect_db(db_name, collection_name):
     Returns:
     Collection: A MongoDB collection object.
 
-    This function establishes a connection to a MongoDB instance on the localhost and returns the specified collection
+    This function establishes a connection to a MongoDB instance within a Docker environment and returns the specified collection
     from the specified database. It's used for database operations like querying and inserting data.
     """
-    client = MongoClient("localhost", 27017)
+    client = MongoClient("mongodb", 27017)
     db = client[db_name]
     collection = db[collection_name]
     return collection
+
 
 
 def data_exists(collection, query):

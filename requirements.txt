@@ -3,4 +3,5 @@ uvicorn
 pymongo
 jinja2
 elasticsearch==6.8.2
-bson
+requests
+bs4

@@ -18,7 +18,8 @@ from elastic_search import (
 app = FastAPI()
 
 # Initialize Elasticsearch client
-es = Elasticsearch("http://localhost:9200")
+# es = Elasticsearch("http://localhost:9200")
+es = Elasticsearch("http://elasticsearch:9200")
 
 # Database configuration
 database_name = "racing_database"
@@ -26,7 +27,7 @@ collection_name_1 = "grand_prix_results"
 collection_name_2 = "driver_standings"
 
 # Initialize MongoDB client
-mongo_client = MongoClient("mongodb://localhost:27017")
+mongo_client = MongoClient("mongodb://mongodb:27017")
 db = mongo_client[database_name]
 
 # Serve static files and templates
@@ -43,6 +44,7 @@ async def startup_event():
     if not es.ping():
         raise ValueError("Cannot connect to Elasticsearch.")
     print("Connected to Elasticsearch!")
+
 
 
 @app.get("/", response_class=HTMLResponse)
