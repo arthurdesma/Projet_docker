@@ -25,7 +25,7 @@ This application is a FastAPI-based web service that integrates with MongoDB and
 ## Usage
 1. Start the application:
    ```bash
-   docker-compose up -d
+   docker-compose up -d --build
    ```
 2. Access the web interface at `http://localhost:8000`
 3. Use the provided forms to update the database or query data
