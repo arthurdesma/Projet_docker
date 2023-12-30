@@ -94,7 +94,7 @@ def build_es_query_for_driver_standings(grand_prix, year):
     return search_query
 
 
-def build_es_query_for_grand_prix_results(year):
+def build_es_query_for_grand_prix_results(year,Car,Winner):
     """
     Builds a search query for Elasticsearch for Grand Prix results.
 
@@ -108,6 +108,11 @@ def build_es_query_for_grand_prix_results(year):
     """
     if year:
         search_query = {"query": {"match": {"Year": year}}, "size": 100}
+    if year:
+        search_query = {"query": {"match": {"Car": Car}}, "size": 100}    
+    if year:
+        search_query = {"query": {"match": {"Winner": Winner}}, "size": 100}
+
     else:
         search_query = {"query": {"match_all": {}}, "size": 100}
 

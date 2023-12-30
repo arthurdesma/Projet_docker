@@ -14,8 +14,8 @@ from elastic_search_folder.elastic_search import index_data_to_es, build_es_quer
 app = FastAPI()
 
 # Initialize Elasticsearch client
-# es = Elasticsearch("http://localhost:9200")
-es = Elasticsearch("http://elasticsearch:9200")
+es = Elasticsearch("http://localhost:9200")
+#es = Elasticsearch("http://elasticsearch:9200")
 
 # Database configuration
 database_name = "racing_database"
@@ -23,7 +23,8 @@ collection_name_1 = "grand_prix_results"
 collection_name_2 = "driver_standings"
 
 # Initialize MongoDB client
-mongo_client = MongoClient("mongodb://mongodb:27017")
+mongo_client = MongoClient("mongodb://localhost:27017")
+# mongo_client = MongoClient("mongodb://mongodb:27017")
 db = mongo_client[database_name]
 
 # Serve static files and templates
@@ -191,12 +192,12 @@ async def search_driver_standings(grand_prix: str = None, year: int = None):
 
 
 @app.get("/search/grand_prix_results/")
-async def search_grand_prix_results(year: int = None):
+async def search_grand_prix_results(year: int = None, Car: str = None, Winner: str = None):
     """
     Endpoint to search for Grand Prix results.
     Accepts a parameter for the year to refine the search.
     """
-    es_query = build_es_query_for_grand_prix_results(year)
+    es_query = build_es_query_for_grand_prix_results(year,Car,Winner)
     return await perform_search("grand_prix_results", es_query)
 
 
