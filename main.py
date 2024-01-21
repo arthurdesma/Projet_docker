@@ -12,7 +12,6 @@ import os
 from mongoDB_folder.MongoDB import connect_db, insert_data_if_not_exists
 from scraping_folder.scrap import fetch_race_links, year_result, race_number
 from elastic_search_folder.elastic_search import index_data_to_es, build_es_query_for_driver_standings, build_es_query_for_grand_prix_results
-from data_vis.data import save_grand_prix_winners_chart
 
 # Initialize the FastAPI application
 app = FastAPI()
@@ -197,7 +196,7 @@ async def search_driver_standings(grand_prix: str = None, year: int = None):
 async def search_grand_prix_results(year: int = None, Car: str = None, Winner: str = None):
     """
     Endpoint to search for Grand Prix results.
-    Accepts a parameter for the year to refine the search.
+    Accepts a parameter for the year, Car and Winner to refine the search.
     """
     es_query = build_es_query_for_grand_prix_results(year,Car,Winner)
     return await perform_search("grand_prix_results", es_query)

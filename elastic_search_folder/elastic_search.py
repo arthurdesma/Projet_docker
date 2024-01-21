@@ -94,25 +94,31 @@ def build_es_query_for_driver_standings(grand_prix, year):
     return search_query
 
 
-def build_es_query_for_grand_prix_results(year,Car,Winner):
+def build_es_query_for_grand_prix_results(year, Car, Winner):
     """
     Builds a search query for Elasticsearch for Grand Prix results.
 
     Args:
     year (int): The year to filter the results by.
+    Car (str): The car to filter the results by.
+    Winner (str): The winner to filter the results by.
 
     Returns:
     dict: A dictionary representing the Elasticsearch query.
 
-    This function creates an Elasticsearch query to search for Grand Prix results, optionally filtered by year.
+    This function creates an Elasticsearch query to search for Grand Prix results, optionally filtered by year, car, and winner.
     """
-    if year:
-        search_query = {"query": {"match": {"Year": year}}, "size": 100}
-    if year:
-        search_query = {"query": {"match": {"Car": Car}}, "size": 100}    
-    if year:
-        search_query = {"query": {"match": {"Winner": Winner}}, "size": 100}
+    query_filters = []
 
+    if year:
+        query_filters.append({"match": {"Year": year}})
+    if Car:
+        query_filters.append({"match": {"Car": Car}})
+    if Winner:
+        query_filters.append({"match": {"Winner": Winner}})
+
+    if query_filters:
+        search_query = {"query": {"bool": {"must": query_filters}}, "size": 100}
     else:
         search_query = {"query": {"match_all": {}}, "size": 100}
 
