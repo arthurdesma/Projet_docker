@@ -2,13 +2,17 @@ from fastapi import FastAPI, Request, BackgroundTasks, Query
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from elasticsearch import Elasticsearch, helpers
+from elasticsearch import Elasticsearch
 from pymongo import MongoClient
 from bson import ObjectId, json_util
+from fastapi.responses import FileResponse
+import os
+
 
 from mongoDB_folder.MongoDB import connect_db, insert_data_if_not_exists
 from scraping_folder.scrap import fetch_race_links, year_result, race_number
 from elastic_search_folder.elastic_search import index_data_to_es, build_es_query_for_driver_standings, build_es_query_for_grand_prix_results
+from data_vis.data import save_grand_prix_winners_chart
 
 # Initialize the FastAPI application
 app = FastAPI()

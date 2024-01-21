@@ -123,3 +123,58 @@ function updateTableBody(tableBodyId, items) {
         tableBody.appendChild(row);
     });
 }
+
+document.getElementById('loadChartData').addEventListener('click', function () {
+    var enteredYear = document.getElementById('yearSelector').value;
+    fetchAndRenderGrandPrixData(enteredYear);
+});
+
+async function fetchAndRenderGrandPrixData(year) {
+    console.log("Function called");
+    try {
+        // Construct the URL based on whether a year is entered
+        let url = '/search/grand_prix_results/';
+        if (year.trim() !== '') {
+            url += `?year=${year}`;
+        }
+
+        const response = await fetch(url);
+        const data = await response.json();
+        console.log('Grand Prix Data:', data);
+
+        // Process the data to count wins per driver
+        var winsPerDriver = {};
+        data.data.forEach(item => {
+            winsPerDriver[item.Winner] = (winsPerDriver[item.Winner] || 0) + 1;
+        });
+
+        // Prepare the data for the chart
+        var chartData = {
+            labels: Object.keys(winsPerDriver),
+            datasets: [{
+                label: 'Number of Wins',
+                data: Object.values(winsPerDriver),
+                backgroundColor: 'rgba(0, 123, 255, 0.5)',
+                borderColor: 'rgba(0, 123, 255, 1)',
+                borderWidth: 1
+            }]
+        };
+
+        // Configuration and initialization of the chart
+        var ctx = document.getElementById('grandPrixChart').getContext('2d');
+        var grandPrixChart = new Chart(ctx, {
+            type: 'bar',
+            data: chartData,
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+    } catch (error) {
+        console.error('Error fetching and rendering Grand Prix data:', error);
+    }
+}

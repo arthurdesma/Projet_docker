@@ -2,6 +2,8 @@
 <html>
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Racing Database</title>
     <style>
         table {
@@ -39,6 +41,8 @@
             margin-top: 20px;
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4"></script>
+
 </head>
 
 <body>
@@ -90,6 +94,11 @@
         </tbody>
     </table>
 
+    <h3>Victories Per Winner</h3>
+    <input type="text" id="yearSelector" placeholder="Enter Year (e.g., 2023)" value="">
+    <button id="loadChartData">Load Grand Prix Chart</button>
+    <canvas id="grandPrixChart"></canvas>
+        
     <!-- Filter Form for Driver Standings -->
     <form id="driverStandingsForm">
         <h3>Filter Driver Standings</h3>
