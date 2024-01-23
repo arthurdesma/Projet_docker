@@ -5,6 +5,3 @@ jinja2
 elasticsearch==6.8.2
 requests
 bs4
-matplotlib
-requests
-httpx
