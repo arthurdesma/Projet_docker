@@ -28,7 +28,11 @@ This application is a FastAPI-based web service that integrates with MongoDB and
    docker-compose up -d --build
    ```
 2. Access the web interface at `http://localhost:8000`
-3. Use the provided forms to update the database or query data
+3. Using the Application:
+   - Update Database: Use the provided forms on the website to update the database with new data.
+   - Query Data: To retrieve real-time information, use the forms to query the database, specifying the desired year.
+
+*Note:* The application fetches real-time data on demand and does not store this data internally.
 
 ## Components
 ### FastAPI Application
