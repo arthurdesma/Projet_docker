@@ -62,6 +62,7 @@ This application is a FastAPI-based web service that integrates with MongoDB and
 - `/update_database/`: Endpoint to trigger database update
 - `/update_and_index/`: Endpoint to update the database and index data in Elasticsearch
 - `/index_data/`: Endpoint for indexing data into Elasticsearch
+- `/list_indices/`: Endpoint to list all indices in Elasticsearch
 - `/search/driver_standings/`: Search endpoint for driver standings
 - `/search/grand_prix_results/`: Search endpoint for Grand Prix results
 
