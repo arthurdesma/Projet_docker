@@ -30,7 +30,7 @@ This application is a FastAPI-based web service that integrates with MongoDB and
 2. Access the web interface at `http://localhost:8000`
 3. Using the Application:
    - Update Database: Use the provided forms on the website to update the database with new data.
-   - Query Data: To retrieve real-time information, use the forms to query the database, specifying the desired year.
+   - Query Data: To retrieve real-time information, use the forms to query the database, specifying the desired year. After entering your query, click on the **Load or Search** button to make the data appear on the page.
 
 *Note:* The application fetches real-time data on demand and does not store this data internally.
 
@@ -62,6 +62,7 @@ This application is a FastAPI-based web service that integrates with MongoDB and
 - `/update_database/`: Endpoint to trigger database update
 - `/update_and_index/`: Endpoint to update the database and index data in Elasticsearch
 - `/index_data/`: Endpoint for indexing data into Elasticsearch
+- `/list_indices/`: Endpoint to list all indices in Elasticsearch
 - `/search/driver_standings/`: Search endpoint for driver standings
 - `/search/grand_prix_results/`: Search endpoint for Grand Prix results
 
