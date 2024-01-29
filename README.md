@@ -2,7 +2,7 @@
 # Racing Database Application
 
 ## Overview
-This application is a FastAPI-based web service that integrates with MongoDB and Elasticsearch to provide a platform for managing and querying racing data, specifically Formula 1 race results and driver standings.
+This application is a FastAPI-based web service that integrates with MongoDB and Elasticsearch to provide a platform for managing and querying racing data, specifically Formula 1 race results and driver standings. So for the 29/01/2024 the data start at 2023 for the year input.
 
 ## Features
 - Web interface to update and query racing data
